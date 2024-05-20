@@ -77,6 +77,7 @@
 #define PCA9685_USE_SOFTWARE_I2C
 #endif // /ifndef PCA9685_ENABLE_SOFTWARE_I2C
 
+#define PCA9685_ALL_CHIPS           -1
 
 // Default proxy addresser i2c addresses
 #define PCA9685_I2C_DEF_ALLCALL_PROXYADR    (byte)0xE0      // Default AllCall i2c proxy address
@@ -176,10 +177,10 @@ public:
     // Boards with more than one i2c line (e.g. Due/Mega/etc.) can supply a different
     // Wire instance, such as Wire1 (using SDA1/SCL1), Wire2 (using SDA2/SCL2), etc.
     // Supported i2c clock speeds are 100kHz, 400kHz (default), and 1000kHz.
-    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire, uint32_t i2cSpeed = 400000);
+    PCA9685(byte i2cAddress = B000000, int adtlChips = 0, TwoWire& i2cWire = Wire, uint32_t i2cSpeed = 400000);
 
     // Convenience constructor for custom Wire instance. See main constructor.
-    PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
+    PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed = 400000, byte i2cAddress = B000000, int adtlChips = 0);
 
 #else
 
@@ -190,7 +191,7 @@ public:
     // Minimum supported i2c clock speed is 100kHz, which sets minimum processor speed at
     // 4MHz+ running in i2c standard mode. For up to 400kHz i2c clock speeds, minimum
     // processor speed is 16MHz+ running in i2c fast mode.
-    PCA9685(byte i2cAddress = B000000);
+    PCA9685(byte i2cAddress = B000000, uint16_t adtlChips = 0);
 
 #endif
 
@@ -205,6 +206,8 @@ public:
               PCA9685_OutputEnabledMode enabledMode = PCA9685_OutputEnabledMode_Normal,
               PCA9685_OutputDisabledMode disabledMode = PCA9685_OutputDisabledMode_Low,
               PCA9685_ChannelUpdateMode updateMode = PCA9685_ChannelUpdateMode_AfterStop,
+              //PCA9685_PhaseBalancer phaseBalancer = PCA9685_PhaseBalancer_None,
+              //int adtlChips = 0);
               PCA9685_PhaseBalancer phaseBalancer = PCA9685_PhaseBalancer_None);
 
     // Convenience initializer for custom phase balancer. See main init method.
@@ -212,6 +215,8 @@ public:
               PCA9685_OutputDriverMode driverMode = PCA9685_OutputDriverMode_TotemPole,
               PCA9685_OutputEnabledMode enabledMode = PCA9685_OutputEnabledMode_Normal,
               PCA9685_OutputDisabledMode disabledMode = PCA9685_OutputDisabledMode_Low,
+              //PCA9685_ChannelUpdateMode updateMode = PCA9685_ChannelUpdateMode_AfterStop,
+              //int adtlChips = 0);
               PCA9685_ChannelUpdateMode updateMode = PCA9685_ChannelUpdateMode_AfterStop);
 
     // Initializes module as a proxy addresser. Typically called in setup(). Used when
@@ -222,7 +227,7 @@ public:
     void initAsProxyAddresser();
 
     // Mode accessors
-    byte getI2CAddress();
+    byte getI2CAddress(int adtlChip = 0);
     uint32_t getI2CSpeed();
     PCA9685_OutputDriverMode getOutputDriverMode();
     PCA9685_OutputEnabledMode getOutputEnabledMode();
@@ -234,44 +239,45 @@ public:
     // diminishes, as raw pre-scaler value, computed per datasheet, starts to require
     // much larger frequency increases for single-digit increases of the raw pre-scaler
     // value that ultimately controls the PWM frequency produced.
-    void setPWMFrequency(float pwmFrequency = 200);
+    void setPWMFrequency(float pwmFrequency = 200, int adtlChip = 0);
     // Sets standard servo frequency of 50Hz.
-    void setPWMFreqServo();
+    void setPWMFreqServo(int adtlChip = 0);
 
     // Turns channel either full on or full off
-    void setChannelOn(int channel);
-    void setChannelOff(int channel);
+    void setChannelOn(int channel, int adtlChip = 0);
+    void setChannelOff(int channel, int adtlChip = 0);
 
     // PWM amounts 0 - 4096, 0 full off, 4096 full on
-    void setChannelPWM(int channel, uint16_t pwmAmount);
+    void setChannelPWM(int channel, uint16_t pwmAmount, int adtlChip = 0);
     void setChannelsPWM(int begChannel, int numChannels, const uint16_t *pwmAmounts);
 
     // Sets all channels, but won't distribute phases
-    void setAllChannelsPWM(uint16_t pwmAmount);
+    void setAllChannelsPWM(uint16_t pwmAmount, int adtlChip = 0);
 
     // Returns PWM amounts 0 - 4096, 0 full off, 4096 full on
-    uint16_t getChannelPWM(int channel);
+    uint16_t getChannelPWM(int channel, int adtlChip = 0);
 
     // Enables multiple talk-through paths via i2c bus (lsb/bit0 must stay 0). To use,
     // create a new proxy instance using initAsProxyAddresser() with proper proxy i2c
     // address >= 0xE0, and pass that instance's i2c address into desired method below.
     void enableAllCallAddress(byte i2cAddressAllCall = PCA9685_I2C_DEF_ALLCALL_PROXYADR);
-    void enableSub1Address(byte i2cAddressSub1 = PCA9685_I2C_DEF_SUB1_PROXYADR);
-    void enableSub2Address(byte i2cAddressSub2 = PCA9685_I2C_DEF_SUB2_PROXYADR);
-    void enableSub3Address(byte i2cAddressSub3 = PCA9685_I2C_DEF_SUB3_PROXYADR);
+    void enableSub1Address(byte i2cAddressSub1 = PCA9685_I2C_DEF_SUB1_PROXYADR, int adtlChip = 0);
+    void enableSub2Address(byte i2cAddressSub2 = PCA9685_I2C_DEF_SUB2_PROXYADR, int adtlChip = 0);
+    void enableSub3Address(byte i2cAddressSub3 = PCA9685_I2C_DEF_SUB3_PROXYADR, int adtlChip = 0);
     void disableAllCallAddress();
-    void disableSub1Address();
-    void disableSub2Address();
-    void disableSub3Address();
+    void disableSub1Address(int adtlChip = 0);
+    void disableSub2Address(int adtlChip = 0);
+    void disableSub3Address(int adtlChip = 0);
 
     // Allows external clock line to be utilized (power reset required to disable)
     void enableExtClockLine();
 
     byte getLastI2CError();
+    byte getLastLibError();
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
     int getWireInterfaceNumber();
-    void printModuleInfo();
+    void printModuleInfo(int adtlChip = 0);
     void checkForErrors();
 #endif
 
@@ -287,17 +293,19 @@ protected:
     PCA9685_ChannelUpdateMode _updateMode;                  // Channel update mode
     PCA9685_PhaseBalancer _phaseBalancer;                   // Phase balancer scheme
     bool _isProxyAddresser;                                 // Proxy addresser flag (disables certain functionality)
+    byte _lastLibError;                                     // Last error reported by the library
     byte _lastI2CError;                                     // Last module i2c error
+    byte _adtlChips;                                    // Specify how many additional chips for "multi" mode
 
     byte getMode2Value();
     void getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
 
-    void writeChannelBegin(int channel);
+    void writeChannelBegin(int channel, int adtlChip = 0);
     void writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
     void writeChannelEnd();
 
-    void writeRegister(byte regAddress, byte value);
-    byte readRegister(byte regAddress);
+    void writeRegister(byte regAddress, byte value, int adtlChip = 0);
+    byte readRegister(byte regAddress, int adtlChip = 0);
 
 #ifdef PCA9685_USE_SOFTWARE_I2C
     uint8_t _readBytes;
